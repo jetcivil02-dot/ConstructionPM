@@ -15,7 +15,7 @@ export function Attendance() {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    if (profile?.role === 'Foreman' || profile?.role === 'Dev') {
+    if (profile?.role === 'Foreman') {
       loadGroups();
     }
   }, [profile]);
@@ -92,7 +92,7 @@ export function Attendance() {
         ...existing,
         status,
         check_in_time: status === 'Absent' ? undefined : '09:00',
-      } as any,
+      },
     });
   };
 
@@ -105,20 +105,20 @@ export function Attendance() {
           ...existing,
           ot_hours: hours,
           work_shift: hours > 0 ? 'โอที' : 'ปกติ',
-        } as any,
+        },
       });
     }
   };
 
   const handleSave = async () => {
-    if (!selectedGroup) return;
+    if (!selectedGroup || !profile?.user_id) return;
     setSaving(true);
     try {
       const records = members
         .map((member) => {
           const record = attendance[member.id];
           return {
-            id: record?.id || undefined, // Include existing ID for upsert, or undefined for new records
+            id: record?.id || undefined,
             crew_group_id: selectedGroup,
             crew_member_id: member.id,
             attendance_date: date,
@@ -126,13 +126,13 @@ export function Attendance() {
             check_in_time: record?.check_in_time,
             work_shift: record?.work_shift || 'ปกติ',
             ot_hours: record?.ot_hours || 0,
-            recorded_by: profile?.user_id, // Ensure recorded_by is set
+            recorded_by: profile.user_id,
           };
         });
 
       const { error } = await supabase
         .from('attendance_records')
-        .upsert(records);
+        .upsert(records, { onConflict: 'crew_group_id,crew_member_id,attendance_date' });
       if (error) throw error;
       alert('Attendance saved successfully!');
       await loadAttendance();
@@ -284,7 +284,7 @@ export function Attendance() {
                 {['Present', 'Late', 'Absent'].map((s) => (
                   <button
                     key={s}
-                    onClick={() => handleStatusChange(member.id, s as any)}
+                    onClick={() => handleStatusChange(member.id, s as 'Present' | 'Late' | 'Absent')}
                     className={`flex-1 py-2 px-3 rounded-lg transition text-sm font-medium ${
                       status === s
                         ? 'bg-blue-600 text-white'

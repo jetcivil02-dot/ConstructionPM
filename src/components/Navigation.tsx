@@ -42,6 +42,11 @@ export function Navigation({ role }: NavigationProps) {
           <div className="hidden md:flex items-center gap-2">
             {role && (
               <>
+                <NavLink
+                  href="/tasks"
+                  active={isActive('/tasks')}
+                  label="Tasks"
+                />
                 {role !== 'Sub-con' && (
                   <>
                     <NavLink
@@ -50,18 +55,11 @@ export function Navigation({ role }: NavigationProps) {
                       label="Attendance"
                     />
                     <NavLink
-                      href="/tasks"
-                      active={isActive('/tasks')}
-                      label="Tasks"
+                      href="/history"
+                      active={isActive('/history')}
+                      label="History"
                     />
                   </>
-                )}
-                {role !== 'Sub-con' && (
-                  <NavLink
-                    href="/history"
-                    active={isActive('/history')}
-                    label="History"
-                  />
                 )}
                 {(role === 'Dev' || role === 'Foreman') && (
                   <NavLink
@@ -105,6 +103,11 @@ export function Navigation({ role }: NavigationProps) {
           <div className="md:hidden border-t border-gray-200 py-3 space-y-2">
             {role && (
               <>
+                <MobileNavLink
+                  href="/tasks"
+                  active={isActive('/tasks')}
+                  label="Tasks"
+                />
                 {role !== 'Sub-con' && (
                   <>
                     <MobileNavLink
@@ -113,18 +116,11 @@ export function Navigation({ role }: NavigationProps) {
                       label="Attendance"
                     />
                     <MobileNavLink
-                      href="/tasks"
-                      active={isActive('/tasks')}
-                      label="Tasks"
+                      href="/history"
+                      active={isActive('/history')}
+                      label="History"
                     />
                   </>
-                )}
-                {role !== 'Sub-con' && (
-                  <MobileNavLink
-                    href="/history"
-                    active={isActive('/history')}
-                    label="History"
-                  />
                 )}
                 {(role === 'Dev' || role === 'Foreman') && (
                   <MobileNavLink

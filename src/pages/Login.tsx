@@ -18,8 +18,20 @@ export function Login() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) throw signUpError;
+        
+        // Create user_roles entry for new user
+        if (authData.user) {
+          const { error: roleError } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: authData.user.id,
+              role: 'Sub-con', // Default role for new users
+            });
+          if (roleError) throw roleError;
+        }
+        
         setError(null);
         alert('Signup successful! Check your email to confirm.');
       } else {

@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Trash2, Loader } from 'lucide-react';
 
 export function Tasks() {
-  const { session, profile } = useAuth();
+  const { profile } = useAuth();
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [groups, setGroups] = useState<CrewGroup[]>([]);
   const [loading, setLoading] = useState(false);

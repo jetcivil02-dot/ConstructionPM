@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Plus, Trash2, Loader } from 'lucide-react';
 
 export function Admin() {
-  const { profile, session } = useAuth();
+  const { profile } = useAuth();
   const [groups, setGroups] = useState<CrewGroup[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -35,13 +35,13 @@ export function Admin() {
   };
 
   const handleCreateGroup = async () => {
-    if (!newGroupName || !session?.user) return;
+    if (!newGroupName || !profile?.user_id) return;
 
     setSaving(true);
     try {
       const { error } = await supabase.from('crew_groups').insert({
         name: newGroupName,
-        created_by: session.user.id,
+        created_by: profile.user_id,
       });
       if (error) throw error;
       setNewGroupName('');
@@ -66,13 +66,13 @@ export function Admin() {
   };
 
   const handleSetCycle = async () => {
-    if (!session?.user) return;
+    if (!profile?.user_id) return;
     setSaving(true);
     try {
       const { error } = await supabase.from('cycle_settings').insert({
         cycle_start_date: cycleStart,
         cycle_end_date: cycleEnd,
-        created_by: session.user.id,
+        created_by: profile.user_id,
       });
       if (error) throw error;
       alert('Cycle settings saved!');
