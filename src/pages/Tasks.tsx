@@ -4,7 +4,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Trash2, Loader } from 'lucide-react';
 
 export function Tasks() {
-  const { session } = useAuth();
+  const { session, profile } = useAuth();
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [groups, setGroups] = useState<CrewGroup[]>([]);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,7 @@ export function Tasks() {
   useEffect(() => {
     loadGroups();
     loadTasks();
-  }, [date]);
+  }, [date, profile]);
 
   useEffect(() => {
     if (groups.length > 0 && !selectedGroup) {
@@ -42,15 +42,21 @@ export function Tasks() {
   };
 
   const loadTasks = async () => {
+    if (!profile) return;
     setLoading(true);
     try {
       let query = supabase
         .from('work_tasks')
         .select('*')
-        .eq('work_date', date)
-        .order('created_at', { ascending: false });
+        .eq('work_date', date);
 
-      const { data, error } = await query;
+      if (profile.role === 'Sub-con') {
+        query = query.eq('created_by', profile.user_id);
+      } else if ((profile.role === 'Foreman' || profile.role === 'Engineer') && profile.crew_group_id) {
+        query = query.eq('crew_group_id', profile.crew_group_id);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
       setTasks(data || []);
     } catch (err) {
@@ -61,7 +67,7 @@ export function Tasks() {
   };
 
   const handleSaveTask = async () => {
-    if (!taskName || quantity <= 0 || !selectedGroup || !session?.user) return;
+    if (!taskName || quantity <= 0 || !selectedGroup || !profile?.user_id) return;
 
     setSaving(true);
     try {
@@ -86,7 +92,7 @@ export function Tasks() {
             quantity,
             unit,
             crew_group_id: selectedGroup,
-            created_by: session.user.id,
+            created_by: profile.user_id,
           });
         if (error) throw error;
       }
@@ -122,6 +128,7 @@ export function Tasks() {
     setQuantity(task.quantity);
     setUnit(task.unit);
     setEditNote(task.edit_note || '');
+    setSelectedGroup(task.crew_group_id);
   };
 
   return (
@@ -209,29 +216,32 @@ export function Tasks() {
           )}
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={handleSaveTask}
-            disabled={saving || !taskName || quantity <= 0}
-            className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
-          >
-            {saving && <Loader className="w-4 h-4 animate-spin" />}
-            {editingId ? 'Update Task' : 'Add Task'}
-          </button>
-          {editingId && (
+        {(profile?.role === 'Sub-con' || profile?.role === 'Foreman' || profile?.role === 'Engineer') && (
+          <div className="flex gap-2">
             <button
-              onClick={() => {
-                setEditingId(null);
-                setTaskName('');
-                setQuantity(0);
-                setEditNote('');
-              }}
-              className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+              onClick={handleSaveTask}
+              disabled={saving || !taskName || quantity <= 0}
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition flex items-center justify-center gap-2"
             >
-              Cancel
+              {saving && <Loader className="w-4 h-4 animate-spin" />}
+              {editingId ? 'Update Task' : 'Add Task'}
             </button>
-          )}
-        </div>
+            {editingId && (
+              <button
+                onClick={() => {
+                  setEditingId(null);
+                  setTaskName('');
+                  setQuantity(0);
+                  setEditNote('');
+                  setSelectedGroup(groups.length > 0 ? groups[0].id : '');
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -250,18 +260,24 @@ export function Tasks() {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(task)}
-                    className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(task.id)}
-                    className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {((profile?.role === 'Sub-con' && task.created_by === profile.user_id) ||
+                   (profile?.role && ['Foreman', 'Engineer', 'PM', 'Dev'].includes(profile.role))) && (
+                    <button
+                      onClick={() => handleEdit(task)}
+                      className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition text-sm"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {((profile?.role === 'Sub-con' && task.created_by === profile.user_id) ||
+                   (profile?.role && ['Foreman', 'Dev'].includes(profile.role))) && (
+                    <button
+                      onClick={() => handleDelete(task.id)}
+                      className="px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
               {task.is_edited && (

@@ -19,21 +19,25 @@ function App() {
     );
   }
 
-  if (!session) {
-    return <Login />;
-  }
+
 
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Navigation role={profile?.role || null} />
+        {session && <Navigation role={profile?.role || null} />}
         <main className="pb-8">
           <Routes>
-            <Route path="/attendance" element={<Attendance />} />
-            <Route path="/tasks" element={<Tasks />} />
-            <Route path="/history" element={<History />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/" element={<Navigate to="/tasks" />} />
+            {session ? (
+              <>
+                <Route path="/attendance" element={<Attendance />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/history" element={<History />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/" element={<Navigate to="/tasks" />} />
+              </>
+            ) : (
+              <Route path="*" element={<Login />} />
+            )}
           </Routes>
         </main>
       </div>

@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, NavLink as RouterNavLink } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { UserRole } from '../lib/supabase';
 import { LogOut, Menu, X } from 'lucide-react';
@@ -144,8 +144,8 @@ export function Navigation({ role }: NavigationProps) {
 
 function NavLink({ href, active, label }: { href: string; active: boolean; label: string }) {
   return (
-    <a
-      href={href}
+    <RouterNavLink
+      to={href}
       className={`px-4 py-2 rounded-lg transition ${
         active
           ? 'bg-blue-100 text-blue-700 font-medium'
@@ -153,14 +153,14 @@ function NavLink({ href, active, label }: { href: string; active: boolean; label
       }`}
     >
       {label}
-    </a>
+    </RouterNavLink>
   );
 }
 
 function MobileNavLink({ href, active, label }: { href: string; active: boolean; label: string }) {
   return (
-    <a
-      href={href}
+    <RouterNavLink
+      to={href}
       className={`block px-4 py-2 rounded-lg transition ${
         active
           ? 'bg-blue-100 text-blue-700 font-medium'
@@ -168,6 +168,6 @@ function MobileNavLink({ href, active, label }: { href: string; active: boolean;
       }`}
     >
       {label}
-    </a>
+    </RouterNavLink>
   );
 }

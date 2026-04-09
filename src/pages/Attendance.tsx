@@ -118,6 +118,7 @@ export function Attendance() {
         .map((member) => {
           const record = attendance[member.id];
           return {
+            id: record?.id || undefined, // Include existing ID for upsert, or undefined for new records
             crew_group_id: selectedGroup,
             crew_member_id: member.id,
             attendance_date: date,
@@ -125,15 +126,14 @@ export function Attendance() {
             check_in_time: record?.check_in_time,
             work_shift: record?.work_shift || 'ปกติ',
             ot_hours: record?.ot_hours || 0,
+            recorded_by: profile?.user_id, // Ensure recorded_by is set
           };
         });
 
-      for (const record of records) {
-        const { error } = await supabase
-          .from('attendance_records')
-          .upsert(record);
-        if (error) throw error;
-      }
+      const { error } = await supabase
+        .from('attendance_records')
+        .upsert(records);
+      if (error) throw error;
       alert('Attendance saved successfully!');
       await loadAttendance();
     } catch (err) {
